@@ -2,7 +2,7 @@
 on:
   push:
     branches: [ "main" ]
-  
+
   workflow_dispatch:
 
   schedule:
@@ -23,11 +23,19 @@ jobs:
           extra-keys: ./beni-64e2a1a5.rsa.pub
           packages: alpine-sdk
 
+      - name: Setup keys & perms
+        run: |
+          cp -v ./abuild.conf ./beni-64e2a1a5.rsa.pub /etc/
+          echo '{{ secrets.PKG_PRIV_KEY }}' > /etc/beni-64e2a1a5.rsa
+          echo 'PACKAGER_PRIVKEY="/etc/beni-64e2a1a5.rsa"' >> /etc/abuild.conf
+          adduser runner abuild
+        shell: alpine.sh --root {0}
+
       # Runs a single command using the runners shell
-      - name: Run build.sh
-        run: ./build.sh
+      - name: Build packages
+        run: ./ci.sh
         shell: alpine.sh {0}
 
       # Runs a set of commands using the runners shell
       - name: Show output
-        run: tree -a {{ steps.alpine.root-path }}/home
+        run: tree -a {{ steps.alpine.root-path }}/home/runner/packages/beni
