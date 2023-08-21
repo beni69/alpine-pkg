@@ -1,0 +1,39 @@
+# Contributor: Beni <beni@vbeni.dev>
+# Maintainer: Beni <beni@vbeni.dev>
+pkgname=pfetch-rs
+pkgver="2.8.0"
+pkgrel=0
+pkgdesc="A rewrite of the pfetch system information tool in Rust"
+url="https://github.com/Gobidev/pfetch-rs"
+arch="all"
+license="MIT"
+depends=""
+makedepends="cargo cargo-auditable"
+checkdepends=""
+# subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/Gobidev/pfetch-rs/archive/v$pkgver/pfetch-rs-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver"
+
+bin="pfetch"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --target="$CTARGET" --locked
+}
+
+build() {
+	cargo auditable build --frozen --release
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -D -m755 target/release/$bin -t "$pkgdir"/usr/bin/
+}
+
+sha512sums="
+114b6679ce790a7f484580a1ab41ad0f1c445f367fd8305767ecee4b600ba52a3e2cb54b806fdbabaf6f4b00bcfd48b449d464f14535950e37b611090a17eb4f  pfetch-rs-2.8.0.tar.gz
+"
