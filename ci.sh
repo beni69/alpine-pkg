@@ -5,7 +5,7 @@ build() {
     abuild -r
 }
 
-for d in beni/*; do
+for d in $PWD/beni/*; do
     echo "##[group] $(basename $d)"
     cd "$d"
     build
