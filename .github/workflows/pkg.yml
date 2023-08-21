@@ -11,6 +11,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, aarch64]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -19,6 +23,7 @@ jobs:
       - uses: jirutka/setup-alpine@v1
         id: alpine
         with:
+          arch: ${{ matrix.arch }}
           branch: edge
           extra-keys: ./beni-64e2a1a5.rsa.pub
           packages: alpine-sdk
@@ -26,8 +31,9 @@ jobs:
       - name: Setup keys & perms
         run: |
           cp -v ./abuild.conf ./beni-64e2a1a5.rsa.pub /etc/
-          echo '{{ secrets.PKG_PRIV_KEY }}' > /etc/beni-64e2a1a5.rsa
+          echo '${{ secrets.PKG_PRIV_KEY }}' > /etc/beni-64e2a1a5.rsa
           echo 'PACKAGER_PRIVKEY="/etc/beni-64e2a1a5.rsa"' >> /etc/abuild.conf
+          chown runner /etc/beni-64e2a1a5.rsa*
           adduser runner abuild
         shell: alpine.sh --root {0}
 
@@ -38,4 +44,9 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Show output
-        run: tree -a {{ steps.alpine.root-path }}/home/runner/packages/beni
+        run: tree -a ${{ steps.alpine.outputs.root-path }}/home/runner/packages/beni/
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.arch }}
+          path: ${{ steps.alpine.outputs.root-path }}/home/runner/packages/beni/${{ matrix.arch }}
