@@ -1,0 +1,33 @@
+
+on:
+  push:
+    branches: [ "main" ]
+  
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 0 * * 6" # every weekend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: jirutka/setup-alpine@v1
+        id: alpine
+        with:
+          branch: edge
+          extra-keys: ./beni-64e2a1a5.rsa.pub
+          packages: alpine-sdk
+
+      # Runs a single command using the runners shell
+      - name: Run build.sh
+        run: ./build.sh
+        shell: alpine.sh {0}
+
+      # Runs a set of commands using the runners shell
+      - name: Show output
+        run: tree -a {{ steps.alpine.root-path }}/home
